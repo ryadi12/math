@@ -49,58 +49,64 @@ jobs:
           cp -r /tmp/lib lib
           cp /tmp/pubspec.yaml pubspec.yaml
 
-      # 5. Set Android compile SDK to 36
-      - name: Set Android compile SDK 36
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-
-          files = [
-              Path("android/app/build.gradle.kts"),
-              Path("android/app/build.gradle")
-          ]
-
-          gradle = next((p for p in files if p.exists()), None)
-
-          if gradle is None:
-              raise SystemExit("Android Gradle file not found")
-
-          content = gradle.read_text()
-
-          content, count1 = re.subn(
-              r'(?m)^(\s*)compileSdk\s*=\s*.*$',
-              r'\1compileSdk = 36',
-              content
-          )
-
-          content, count2 = re.subn(
-              r'(?m)^(\s*)compileSdkVersion\s+.*$',
-              r'\1compileSdkVersion 36',
-              content
-          )
-
-          if count1 + count2 == 0:
-              raise SystemExit("Could not find compileSdk setting")
-
-          gradle.write_text(content)
-          print(f"Updated {gradle} to compileSdk 36")
-          PY
-
-      # 6. Setup Android SDK
+      # 5. Setup Android SDK
       - name: Setup Android SDK
         uses: android-actions/setup-android@v4
         with:
           packages: 'platform-tools'
 
-      # 7. Install Android SDK 36
+      # 6. Install Android SDK 36
       - name: Install Android SDK 36
         run: |
           sdkmanager --install "platforms;android-36"
 
-      # 8. Get Flutter dependencies
+      # 7. Get dependencies
       - name: Flutter Pub Get
         run: flutter pub get
+
+      # 8. Update compileSdk for app and plugins
+      - name: Fix compileSdk for all Android modules
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          files = []
+
+          android_dir = Path("android")
+          if android_dir.exists():
+              files.extend(android_dir.rglob("build.gradle"))
+              files.extend(android_dir.rglob("build.gradle.kts"))
+
+          pub_cache = Path.home() / ".pub-cache" / "hosted" / "pub.dev"
+          if pub_cache.exists():
+              files.extend(pub_cache.glob("**/android/build.gradle"))
+              files.extend(pub_cache.glob("**/android/build.gradle.kts"))
+
+          updated = 0
+
+          pattern = re.compile(
+              r'^(\s*compileSdk(?:Version)?\s*(?:=\s*)?).*$',
+              re.MULTILINE
+          )
+
+          for file in set(files):
+              content = file.read_text()
+              new_content, count = pattern.subn(
+                  lambda match: match.group(1) + "36",
+                  content
+              )
+
+              if count:
+                  file.write_text(new_content)
+                  updated += count
+                  print(f"Updated: {file}")
+
+          if updated == 0:
+              raise SystemExit("No compileSdk settings were updated")
+
+          print(f"Successfully updated {updated} compileSdk settings to 36")
+          PY
 
       # 9. Build Release APK
       - name: Build APK
