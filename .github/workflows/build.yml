@@ -1,41 +1,55 @@
 
-name: Build APK
+name: NoteScan Android APK
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
+    name: Build NoteScan APK
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Download project
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. Setup Java
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
+      # 3. Setup Flutter
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          cache: true
 
-      - name: Generate Android folder
+      # 4. Generate Android folder
+      - name: Generate Android project
         run: |
           cp -r lib /tmp/lib
           cp pubspec.yaml /tmp/pubspec.yaml
 
-          flutter create . --platforms=android --org com.ecole --project-name ecole_app
+          flutter create . \
+            --platforms=android \
+            --org com.ecole \
+            --project-name ecole_app
 
           rm -rf lib
           cp -r /tmp/lib lib
           cp /tmp/pubspec.yaml pubspec.yaml
 
+      # 5. Set Android compile SDK to 36
       - name: Set Android compile SDK 36
         run: |
           python3 - <<'PY'
@@ -73,21 +87,29 @@ jobs:
           print(f"Updated {gradle} to compileSdk 36")
           PY
 
+      # 6. Setup Android SDK
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools'
 
+      # 7. Install Android SDK 36
       - name: Install Android SDK 36
         run: |
           sdkmanager --install "platforms;android-36"
 
-      - name: Get dependencies
+      # 8. Get Flutter dependencies
+      - name: Flutter Pub Get
         run: flutter pub get
 
+      # 9. Build Release APK
       - name: Build APK
         run: flutter build apk --release
 
+      # 10. Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ecole-app-apk
+          name: NoteScan-APK
           path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
