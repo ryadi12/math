@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1029310989",
+    "project_id": "gen-lang-client-0612880155",
+    "storage_bucket": "gen-lang-client-0612880155.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1029310989:android:f7a490229b0d98615ce344",
+        "android_client_info": {
+          "package_name": "com.ecole.ecole_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1029310989-hgotdfu2uj84q0kages1svb7hp4nm1tr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB8sG8J3UxJpeJI3hfbeloAMK-KLSOzArI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1029310989-hgotdfu2uj84q0kages1svb7hp4nm1tr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
