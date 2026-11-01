@@ -73,10 +73,12 @@ jobs:
           print(f"Updated {gradle} to compileSdk 36")
           PY
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Install Android SDK 36
         run: |
-          yes | sdkmanager --licenses || true
-          sdkmanager "platforms;android-36"
+          sdkmanager --install "platforms;android-36"
 
       - name: Get dependencies
         run: flutter pub get
